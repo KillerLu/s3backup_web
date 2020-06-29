@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<head>
+    <title>Backup Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css"
+          integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
+    <link/>
+</head>
+
+<style type="text/css">
+    .contentwrap {
+        width: 98%;
+        margin: 0 auto;
+        padding: 10px;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    ul.tab {
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 1px;
+        height: 30px;
+        line-height: 30px;
+        color: #696969;
+    }
+
+    ul.tab li {
+        float: left;
+        font-family: "微软雅黑";
+        cursor: pointer;
+        padding: 0px;
+
+
+    }
+
+    ul.tab li.li {
+        padding: 0px 25px 0px;
+        font-size: 13px;
+        height: 30px;
+        line-height: 30px;
+        background: #F4F5F9;
+        border-top: 1px solid #C5D0DC;
+        border-left: 1px solid #C5D0DC;
+        border-bottom: 1px solid #C5D0DC;
+
+    }
+
+    ul.tab li.current {
+        border-bottom: 0px;
+        border-top: 2px solid #7599DE;
+        font-size: 13px;
+        color: #343434;
+        background: #FFFFFF;
+
+    }
+
+    ul.tab li.li:last-child {
+        border-right: 1px solid #C5D0DC;
+    }
+
+</style>
+<body>
+<div>
+    <div class="pure-menu pure-menu-horizontal">
+        <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="./index.html" class="pure-menu-link">备份任务列表</a></li>
+<!--            <li class="pure-menu-item"><a href="./job_list.html" class="pure-menu-link">调度计划列表</a></li>-->
+            <li class="pure-menu-item"><a href="./config_list.html" class="pure-menu-link">配置列表</a></li>
+        </ul>
+    </div>
+</div>
+<div style="padding-top: 10px; padding-bottom: 10px;">
+    <h1>修改请联系开发!!!</h1>
+</div>
+<div id="contentwrap" class="contentwrap">
+    <ul class="tab">
+        <li id="li_stage" class="li current" onclick="toStageInfo()"><span>ceph配置</span></li>
+        <li id="li_class" class="li" onclick="toClaRecordDetail()"><span>定时任务配置</span></li>
+<!--        <li id="li_photo" class="li" onclick="toTrainPhoto()"><span>tab3</span></li>-->
+    </ul>
+</div>
+<a class="pure-button" id="create_config" href="./create_config.html">新增配置</a>
+<br/>
+<br/>
+<table class="pure-table" id="ceph_table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>ceph名称</th>
+        <th>访问前缀</th>
+        <th>源access_id</th>
+        <th>源secret_key</th>
+        <th>源endpoint</th>
+        <th>目的access_id</th>
+        <th>目的secret_key</th>
+        <th>目的endpoint</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="t_body1">
+    </tbody>
+</table>
+<table class="pure-table" id="job_table" hidden="true">
+    <thead>
+   <tr>
+        <th>ID</th>
+        <th>计划名称</th>
+        <th>计划组</th>
+        <th>cron表达式</th>
+        <th>状态</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="t_body2">
+    </tbody>
+</table>
+
+</body>
+</html>
+<script src="jquery-3.4.1.js"></script>
+<script type="text/javascript">
+
+    $(function () {
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/config/listCephConfig",
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var str = "";
+                    var href="./create_config.html?id="+data.id;
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.cephName + "</td>" +
+                        "<td>" + data.url + "</td>" +
+                        "<td>" + data.srcAccessId + "</td>" +
+                        "<td>" + data.srcSecretKey + "</td>" +
+                        "<td>" + data.srcEndpoint + "</td>" +
+                        "<td>" + data.desAccessId + "</td>" +
+                        "<td>" + data.desSecretKey + "</td>" +
+                        "<td>" + data.desEndpoint + "</td>" +
+                        "<td>" + '<a href=\"'+href+'\">修改</a>' + "</td>" +
+                        "</tr>";
+                    $("#t_body1").append(str);
+
+                };
+            }
+        });
+    });
+
+    function ceph_list() {
+         //先清空
+        $("#t_body1").html("");
+        $("#t_body2").html("");
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/config/listCephConfig",
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var str = "";
+                    var href="./create_config.html?id="+data.id;
+                      str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.cephName + "</td>" +
+                        "<td>" + data.url + "</td>" +
+                        "<td>" + data.srcAccessId + "</td>" +
+                        "<td>" + data.srcSecretKey + "</td>" +
+                        "<td>" + data.srcEndpoint + "</td>" +
+                        "<td>" + data.desAccessId + "</td>" +
+                        "<td>" + data.desSecretKey + "</td>" +
+                        "<td>" + data.desEndpoint + "</td>" +
+                        "<td>" + '<a href=\"'+href+'\">修改</a>' + "</td>" +
+                        "</tr>";
+                    $("#t_body1").append(str);
+
+                };
+            }
+        });
+    }
+    function job_list() {
+         //先清空
+        $("#t_body1").html("");
+        $("#t_body2").html("");
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/scheduler/listSchedulingPlans",
+            dataType: "json",
+            success: function (res) {
+                 for (let data of res.data) {
+                    var status;
+                    if (data.status == 0) {
+                        status = '启动'
+                    }
+                    if (data.status == 1) {
+                        status = '停止'
+                    }
+                    var str = "";
+                    var href = "javascript:void(0);"
+                    var run = "run(" + data.id+")";
+                    var suspend = "suspend(" + data.id+")";
+                    var recovery = "recovery(" + data.id+")";
+                    var modifyJob = "modifyJob(" + data.id+")";
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.jobName + "</td>" +
+                        "<td>" + data.jobGroup + "</td>" +
+                        "<td>" + data.cronExpressions + "</td>" +
+                        "<td>" + status + "</td>" +
+                        // "<td>" + '<a href=\"javascript:void(0);\" class=\"a_post\">修改</a> &nbsp;' + '<a href=\"javascript:void(0);\" id=\"run\">立即运行</a> &nbsp;' + '<a href=\"javascript:void(0);\">停止</a> &nbsp;' + '<a href=\"javascript:void(0);\">启动</a>' + "</td>" +
+                        "<td>" + ' <button type=\"button\" onclick=\"'+modifyJob+'\">修改</button>' +' <button type=\"button\" onclick=\"'+run+'\">立即运行</button>' +' <button type=\"button\" onclick=\"'+suspend+'\">停止</button>' +' <button type=\"button\" onclick=\"'+recovery+'\">启动</button>' + "</td>" +
+
+                        "</tr>";
+                    $("#t_body2").append(str);
+
+                };
+            }
+        });
+    }
+
+      function modifyJob(jobId) {
+          window.location.href = './create_job.html?'+jobId;
+
+    };
+
+       function suspend(jobId) {
+          $.ajax({
+                type: 'post',
+                url: './s3backup/scheduler/suspendSchedulingPlan?id='+jobId,
+                success: function () {
+                    window.location.href = './config_list.html';
+                }
+            });
+
+    };
+
+    function run(jobId) {
+          $.ajax({
+                type: 'post',
+                url: './s3backup/scheduler/runSchedulingPlan?id='+jobId,
+                success: function () {
+                    window.location.href = './config_list.html';
+                }
+            });
+
+    };
+
+    function recovery(jobId) {
+          $.ajax({
+                type: 'post',
+                url: './s3backup/scheduler/recoverySchedulingPlan?id='+jobId,
+                success: function () {
+                    window.location.href = './config_list.html';
+                }
+            });
+
+    };
+
+
+    function toStageInfo() {
+        document.getElementById("job_table").hidden=true;
+        document.getElementById("ceph_table").hidden=false;
+        document.getElementById("li_stage").className = "li current";
+        document.getElementById("li_class").className = "li";
+        document.getElementById("create_config").hidden = false;
+        ceph_list();
+        // document.getElementById("li_photo").className = "li";
+
+    }
+
+    function toClaRecordDetail() {
+        document.getElementById("ceph_table").hidden=true;
+        document.getElementById("job_table").hidden=false;
+        document.getElementById("li_stage").className = "li";
+        document.getElementById("li_class").className = "li current";
+        // document.getElementById("li_photo").className = "li";
+        document.getElementById("create_config").hidden = true;
+        job_list();
+    }
+
+</script>

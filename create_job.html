@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<head>
+    <title>Backup Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css"
+          integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
+    <link/>
+</head>
+<body>
+<form action="./s3backup/scheduler/updateSchedulingPlan" method="post" onsubmit="submit(this)">
+
+    <input name="id" type="text" value=job_id id="job_id" hidden="true"/>
+    <label>cron表达式：</label>
+    <input name="cronExpressions" type="text" value=""/>
+    </br>
+    </br>
+    <button type="submit" name="submit">提交</button>
+    <button type="button" name="cancel" onclick="tolist()">返回</button>
+
+</form>
+
+<!--<div id="pager">-->
+<!--</div>-->
+</body>
+</html>
+<script src="jquery-3.4.1.js"></script>
+<script type="text/javascript">
+
+    function tolist() {
+        window.location.href = './config_list.html';
+    }
+
+    $(function () {
+        var url = document.URL;
+        var urlA = url.split('?');
+        var job_id = urlA[1];
+        $("#job_id").val(job_id)
+
+    });
+    //
+    // function submit(f) {
+    //     $.ajax({
+    //         url: './s3backup/scheduler/updateSchedulingPlan',
+    //         data: $(f).serialize(),
+    //         type: 'POST',
+    //         success: function (xhr) {
+    //             alert(111)
+    //         }
+    //     });
+    //
+    //     return false;//阻止表单提交
+    // }
+
+    // $('form').on('submit', function (e) {
+    //
+    //     $.ajax({
+    //         type: 'post',
+    //         url: './s3backup/scheduler/updateSchedulingPlan',
+    //         data: $('form').serialize(),
+    //         success: function () {
+    //             alert("修改成功");
+    //         }
+    //     });
+    //
+    // });
+
+
+</script>

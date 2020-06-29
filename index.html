@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<head>
+    <title>Backup Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css"
+          integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
+    <link/>
+</head>
+<style type="text/css">
+    .contentwrap {
+        width: 98%;
+        margin: 0 auto;
+        padding: 10px;
+    }
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    ul.tab {
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 1px;
+        height: 30px;
+        line-height: 30px;
+        color: #696969;
+    }
+
+    ul.tab li {
+        float: left;
+        font-family: "微软雅黑";
+        cursor: pointer;
+        padding: 0px;
+
+
+    }
+
+    ul.tab li.li {
+        padding: 0px 25px 0px;
+        font-size: 13px;
+        height: 30px;
+        line-height: 30px;
+        background: #F4F5F9;
+        border-top: 1px solid #C5D0DC;
+        border-left: 1px solid #C5D0DC;
+        border-bottom: 1px solid #C5D0DC;
+
+    }
+
+    ul.tab li.current {
+        border-bottom: 0px;
+        border-top: 2px solid #7599DE;
+        font-size: 13px;
+        color: #343434;
+        background: #FFFFFF;
+
+    }
+
+    ul.tab li.li:last-child {
+        border-right: 1px solid #C5D0DC;
+    }
+
+</style>
+<body>
+<div>
+    <div class="pure-menu pure-menu-horizontal">
+        <ul class="pure-menu-list">
+            <li class="pure-menu-item"><a href="./index.html" class="pure-menu-link">备份任务列表</a></li>
+<!--            <li class="pure-menu-item"><a href="./job_list.html" class="pure-menu-link">调度计划列表</a></li>-->
+            <li class="pure-menu-item"><a href="./config_list.html" class="pure-menu-link">配置列表</a></li>
+        </ul>
+    </div>
+</div>
+<div id="contentwrap" class="contentwrap">
+    <ul class="tab" id="ceph_tab">
+<!--        <li id="li_stage" class="li current" onclick="toStageInfo()"><span>ceph配置</span></li>-->
+<!--        <li id="li_class" class="li" onclick="toClaRecordDetail()"><span>定时任务配置</span></li>-->
+<!--        <li id="li_photo" class="li" onclick="toTrainPhoto()"><span>tab3</span></li>-->
+    </ul>
+</div>
+<h3>备份任务</h3>
+<input name="ceph_name" type="text"  id="ceph_name" hidden="true"/>
+
+前往第 <input id="page" name="page" type="text" value="1"/>页 <button type="button" name="search" onclick="search()">查询</button>
+<div style="padding-top: 10px; padding-bottom: 10px;">
+    <a class="pure-button"  id="create_task">创建备份任务</a>
+</div>
+<table class="pure-table" id="task_table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>状态</th>
+        <th>开始时间</th>
+        <th>结束时间</th>
+        <th>成功数量</th>
+        <th>失败数量</th>
+        <th>成功备份文件大小</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody id="t_body">
+    </tbody>
+</table>
+<div id="pager">
+</div>
+</body>
+</html>
+<script src="jquery-3.4.1.js"></script>
+<script type="text/javascript">
+    $(function () {
+         $.ajax({
+            type: "GET",
+            url: "./s3backup/config/listCephConfig",
+            dataType: "json",
+            success: function (res) {
+                var i=0;
+                for (let data of res.data) {
+                    var str ="";
+                    clickMethod="clickTab(\""+data.cephName+"\","+i+","+res.total+")";
+                    if (i == 0) {
+                        str = "<li id=\"li_stage_"+i+"\" class=\"li current\" onclick=\'"+clickMethod+"\'><span>"+data.cephName+"</span></li>";
+                        ceph_name=data.cephName;
+                    }else{
+                        str = "<li id=\"li_stage_"+i+"\" class=\"li\" onclick=\'"+clickMethod+"\'><span>"+data.cephName+"</span></li>";
+                    }
+                    $("#ceph_tab").append(str);
+                    i++;
+                };
+                document.getElementById("create_task").href="./create_task.html?backupCeph="+ceph_name;
+                if (i > 0) {
+                    $("#ceph_name").val(ceph_name);
+                    get_list(ceph_name);
+                }else{
+                    document.getElementById("create_task").hidden=true;
+                }
+
+            }
+        });
+    });
+
+
+    function clickTab(ceph_name,i,total) {
+        $("#ceph_name").val(ceph_name);
+        document.getElementById("create_task").href="./create_task.html?backupCeph="+ceph_name;
+        for (j = 0; j < total; j++) {
+            document.getElementById("li_stage_"+j).className="li";
+        }
+        document.getElementById("li_stage_"+i).className="li current";
+        get_list(ceph_name);
+    }
+
+    function get_list(ceph_name){
+          //先清空
+        $("#t_body").html("");
+          $.ajax({
+            type: "GET",
+            url: "./s3backup/backup/listBackupTaskDetail?backupCeph="+ceph_name,
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var startTime = data.startTime != null ? data.startTime : "";
+                    var endTime = data.endTime != null ? data.endTime : "";
+                    var taskStatus;
+                    if (data.taskStatus == 0) {
+                        taskStatus = '进行中'
+                    }
+                    if (data.taskStatus == 1) {
+                        taskStatus = '已完成'
+                    }
+                      if (data.taskStatus == 2) {
+                        taskStatus = '手动中断'
+                    }
+                    var str = "";
+                    var href="./task_detail.html?"+data.id;
+                    var fail="./fail.html?"+data.id;
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + taskStatus + "</td>" +
+                        "<td>" + startTime + "</td>" +
+                        "<td>" + endTime + "</td>" +
+                        "<td>" + data.successCount + "</td>" +
+                        "<td>" + data.failCount + "</td>" +
+                        "<td>" + data.readableSize + "</td>" +
+                        "<td>" + '<a href=\"'+href+'\">查看</a>   '+ '<a href=\"'+fail+'\">查看失败</a>' + "</td>" +
+                        "</tr>";
+                    $("#t_body").append(str);
+                };
+                $("#ceph_name").val(ceph_name);
+                var pages=Math.ceil(res.total / 10);
+                var str=""
+                str += "<span>总共：" + pages+ "页</span> &nbsp;";
+                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
+                $("#pager").html(str);
+            }
+        });
+    }
+
+    function search() {
+        //先清空
+        $("#t_body").html("");
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/backup/listBackupTaskDetail?backupCeph="+$("#ceph_name").val()+"&page="+$("#page").val(),
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var startTime = data.startTime != null ? data.startTime : "";
+                    var endTime = data.endTime != null ? data.endTime : "";
+                    var taskStatus;
+                    if (data.taskStatus == 0) {
+                        taskStatus = '进行中'
+                    }
+                    if (data.taskStatus == 1) {
+                        taskStatus = '已完成'
+                    }
+                      if (data.taskStatus == 2) {
+                        taskStatus = '手动中断'
+                    }
+                    var str = "";
+                    var href="./task_detail.html?"+data.id;
+                    var fail="./fail.html?"+data.id;
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + taskStatus + "</td>" +
+                        "<td>" + startTime + "</td>" +
+                        "<td>" + endTime + "</td>" +
+                        "<td>" + data.successCount + "</td>" +
+                        "<td>" + data.failCount + "</td>" +
+                        "<td>" + data.readableSize + "</td>" +
+                        "<td>" + '<a href=\"'+href+'\">查看</a>   '+ '<a href=\"'+fail+'\">查看失败</a>' + "</td>" +
+                        "</tr>";
+
+
+                    $("#t_body").append(str);
+
+                };
+                    var pages=Math.ceil(res.total / 10);
+                var str=""
+                str += "<span>总共：" + pages+ "页</span> &nbsp;";
+                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
+                $("#pager").html(str);
+            }
+        });
+    }
+</script>

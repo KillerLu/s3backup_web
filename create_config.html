@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<head>
+    <title>Backup Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css"
+          integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
+    <link/>
+</head>
+<body>
+<form id="create_config_form" action="./s3backup/config/createCephConfig" method="post">
+
+
+    <input name="id" type="text"  id="configId" hidden="true"/>
+    <label>ceph名称：</label>
+    <input  id="cephName" name="cephName" type="text" value=""/>
+    <br/>
+    <br/>
+    <label>访问前缀：</label>
+    <input id="url" name="url" type="text" value=""/>
+    <br/>
+    <br/>
+    <label>源access_id：</label>
+    <input id="srcAccessId" name="srcAccessId" type="text" value=""/>
+    </br>
+    </br>
+    <label>源secret_key：</label>
+    <input id="srcSecretKey" name="srcSecretKey" type="text" value=""/>
+    </br>
+    </br>
+    <label>源endpoint：</label>
+    <input id="srcEndpoint" name="srcEndpoint" type="text" value=""/>
+    </br>
+    </br>
+    <label>目的access_id：</label>
+    <input id="desAccessId" name="desAccessId" type="text" value=""/>
+    </br>
+    </br>
+    <label>目的secret_key：</label>
+    <input id="desSecretKey" name="desSecretKey" type="text" value=""/>
+    </br>
+    </br>
+    <label>目的endpoint：</label>
+    <input id="desEndpoint" name="desEndpoint" type="text" value=""/>
+    </br>
+    </br>
+    <button type="submit" name="submit" onclick="create_config()">提交</button>
+    <button type="button" name="cancel" onclick="tolist()">返回</button>
+
+</form>
+
+<!--<div id="pager">-->
+<!--</div>-->
+</body>
+</html>
+<script src="jquery-3.4.1.js"></script>
+<script type="text/javascript">
+
+    $(function () {
+        var id = getQueryVariable("id");
+        if(id!=null && id!=undefined){
+            getDetail(id);
+        }
+
+    });
+
+    function getQueryVariable(variable)
+    {
+           var query = window.location.search.substring(1);
+           var vars = query.split("&");
+           for (var i=0;i<vars.length;i++) {
+                   var pair = vars[i].split("=");
+                   if(pair[0] == variable){return pair[1];}
+           }
+           return null;
+    }
+
+    function getDetail(id){
+        $.ajax({
+            url:"./s3backup/config/getCephConfigDetail?id="+id,
+            type:"get",
+            data: $('form').serialize(),
+            success:function(res){
+                $("#configId").val(res.data.id);
+                $("#cephName").val(res.data.cephName);
+                $("#url").val(res.data.url);
+                $("#srcAccessId").val(res.data.srcAccessId);
+                $("#srcSecretKey").val(res.data.srcSecretKey);
+                $("#srcEndpoint").val(res.data.srcEndpoint);
+                $("#desAccessId").val(res.data.desAccessId);
+                $("#desSecretKey").val(res.data.desSecretKey);
+                $("#desEndpoint").val(res.data.desEndpoint);
+            }
+        });
+    }
+
+    function tolist() {
+        window.location.href = './config_list.html';
+    }
+
+    // function create_config(){
+    //     $.ajax({
+    //         url:"./s3backup/config/createCephConfig",
+    //         type:"post",
+    //         data: $('form').serialize(),
+    //         success:function(res){
+    //             console.log(res);
+    //             console.log(res.code);
+    //             if (res.code == 200) {
+    //                 window.location.href = "./config_list.html";
+    //             }
+    //         },
+    //         error:function(e){
+    //             alert("错误！！");
+    //         }
+    //     });
+    // }
+
+
+</script>

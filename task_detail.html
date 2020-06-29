@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<head>
+    <title>Backup Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.1/build/pure-min.css"
+          integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
+    <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
+    <link/>
+</head>
+<body>
+<h3>任务详情</h3>
+前往第 <input id="page" name="page" type="text" value="1"/>页 <button type="button" name="search" onclick="search()">查询</button>
+<table class="pure-table" id="task_table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>bucket</th>
+        <th>key</th>
+        <th>备份结果</th>
+        <th>备份类型</th>
+        <th>备份日期</th>
+        <th>源文件上传日期</th>
+        <th>文件大小</th>
+    </tr>
+    </thead>
+    <tbody id="t_body">
+    </tbody>
+</table>
+<div id="pager">
+</div>
+</body>
+</html>
+<script src="jquery-3.4.1.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var url = document.URL;
+        var urlA = url.split('?');
+        var taskId = urlA[1];
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/backup/listRecordByTaskId?taskId="+taskId,
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var backupResult;
+                    if (data.backupResult == 0) {
+                        backupResult = '进行中'
+                    }
+                    if (data.backupResult == 1) {
+                        backupResult = '备份成功'
+                    }
+                    if (data.backupResult == 2) {
+                        backupResult = '备份失败'
+                    }
+                    var backupType;
+                    if (data.backupType == 1) {
+                        backupType = '全文件备份(增量)'
+                    }
+                    if (data.backupType == 2) {
+                        backupType = '手动备份今天(增量)'
+                    }
+                    if (data.backupType == 3) {
+                        backupType = '定时备份昨天'
+                    }
+                    var str = "";
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.bucket + "</td>" +
+                        "<td>" + data.uniqueKey + "</td>" +
+                        "<td>" + backupResult + "</td>" +
+                        "<td>" + backupType + "</td>" +
+                        "<td>" + data.backupDate + "</td>" +
+                        "<td>" + data.sourceDate+ "</td>" +
+                        "<td>" + data.readableSize+ "</td>" +
+                        "</tr>";
+
+
+                    $("#t_body").append(str);
+
+                };
+                    var pages=Math.ceil(res.total / 10);
+                var str=""
+                str += "<span>总共：" + pages+ "页</span> &nbsp;";
+                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
+                $("#pager").html(str);
+            }
+        });
+    });
+    function search() {
+          //先清空
+        $("#t_body").html("");
+        var url = document.URL;
+        var urlA = url.split('?');
+        var taskId = urlA[1];
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/backup/listRecordByTaskId?taskId="+taskId+"&page="+$("#page").val(),
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var backupResult;
+                    if (data.backupResult == 0) {
+                        backupResult = '进行中'
+                    }
+                    if (data.backupResult == 1) {
+                        backupResult = '备份成功'
+                    }
+                    if (data.backupResult == 2) {
+                        backupResult = '备份失败'
+                    }
+                    var backupType;
+                    if (data.backupType == 1) {
+                        backupType = '全文件备份(增量)'
+                    }
+                    if (data.backupType == 2) {
+                        backupType = '手动备份今天(增量)'
+                    }
+                    if (data.backupType == 3) {
+                        backupType = '定时备份昨天'
+                    }
+                    var str = "";
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.bucket + "</td>" +
+                        "<td>" + data.uniqueKey + "</td>" +
+                        "<td>" + backupResult + "</td>" +
+                        "<td>" + backupType + "</td>" +
+                        "<td>" + data.backupDate + "</td>" +
+                        "<td>" + data.sourceDate+ "</td>" +
+                        "<td>" + data.readableSize+ "</td>" +
+                        "</tr>";
+
+
+                    $("#t_body").append(str);
+
+                };
+                    var pages=Math.ceil(res.total / 10);
+                var str=""
+                str += "<span>总共：" + pages+ "页</span> &nbsp;";
+                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
+                $("#pager").html(str);
+            }
+        });
+    }
+
+
+</script>

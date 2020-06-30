@@ -1,0 +1,12 @@
+.pageWrap {
+}
+.pageWrap li{
+    float: left;
+    margin-right: 10px;
+}
+
+.pageWrap span{
+    color: #3c3c3c;
+    text-decoration: underline;
+    cursor: pointer;
+}

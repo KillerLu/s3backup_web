@@ -8,10 +8,12 @@
           integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
     <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
     <link/>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 <style type="text/css">
     .contentwrap {
-        width: 97%;
+        width: 98%;
         margin: 0 auto;
         padding: 10px;
     }
@@ -110,7 +112,9 @@
 </body>
 </html>
 <script src="jquery-3.4.1.js"></script>
+<script src="main.js"></script>
 <script type="text/javascript">
+    getPagination()
     $(function () {
          $.ajax({
             type: "GET",
@@ -199,12 +203,12 @@
         });
     }
 
-    function search() {
+    function search(v) {
         //先清空
         $("#t_body").html("");
         $.ajax({
             type: "GET",
-            url: "./s3backup/backup/listBackupTaskDetail?backupCeph="+$("#ceph_name").val()+"&page="+$("#page").val(),
+            url: "./s3backup/backup/listBackupTaskDetail?backupCeph="+$("#ceph_name").val()+"&page="+ v,
             dataType: "json",
             success: function (res) {
                 for (let data of res.data) {

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<head>
+    <title>Backup Jobs</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="Stylesheetpure-min.css">
+</head>
+<body>
+<h3>任务统计</h3>
+<table class="pure-table" id="task_table">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>bucket</th>
+        <th>源ceph文件数</th>
+        <th>目的ceph文件数</th>
+        <th>新增文件数</th>
+        <th>删除文件数</th>
+    </tr>
+    </thead>
+    <tbody id="t_body">
+    </tbody>
+</table>
+</body>
+</html>
+<script src="jquery-3.4.1.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var url = document.URL;
+        var urlA = url.split('?');
+        var taskId = urlA[1];
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/backup/listSummaryByTaskId?taskId="+taskId,
+            dataType: "json",
+            success: function (res) {
+
+                for (let data of res.data) {
+                    var addCountHref="./task_detail.html?action=add&bucket="+data.bucket+"&taskId="+data.taskId;
+                    var delCountHref="./task_detail.html?action=del&bucket="+data.bucket+"&taskId="+data.taskId;
+                    var str = "";
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.bucket + "</td>" +
+                        "<td>" + data.sourceCount + "</td>" +
+                        "<td>" + data.desCount + "</td>" +
+                        "<td>" + '<a href=\"'+addCountHref+'\">'+data.addCount+'</a>   ' + "</td>" +
+                        "<td>" + '<a href=\"'+delCountHref+'\">'+data.delCount+'</a>   ' + "</td>" +
+                        "</tr>";
+                    $("#t_body").append(str);
+
+                };
+            }
+        });
+    });
+    function search() {
+          //先清空
+        $("#t_body").html("");
+        var url = document.URL;
+        var urlA = url.split('?');
+        var taskId = urlA[1];
+        $.ajax({
+            type: "GET",
+            url: "./s3backup/backup/listRecordByTaskId?taskId="+taskId+"&page="+$("#page").val(),
+            dataType: "json",
+            success: function (res) {
+                for (let data of res.data) {
+                    var backupResult;
+                    if (data.backupResult == 0) {
+                        backupResult = '进行中'
+                    }
+                    if (data.backupResult == 1) {
+                        backupResult = '备份成功'
+                    }
+                    if (data.backupResult == 2) {
+                        backupResult = '备份失败'
+                    }
+                    var backupType;
+                    if (data.backupType == 1) {
+                        backupType = '全文件备份(增量)'
+                    }
+                    if (data.backupType == 2) {
+                        backupType = '手动备份今天(增量)'
+                    }
+                    if (data.backupType == 3) {
+                        backupType = '定时备份昨天'
+                    }
+                    var str = "";
+                    str += "<tr>" +
+                        "<td>" + data.id + "</td>" +
+                        "<td>" + data.bucket + "</td>" +
+                        "<td>" + data.uniqueKey + "</td>" +
+                        "<td>" + backupResult + "</td>" +
+                        "<td>" + backupType + "</td>" +
+                        "<td>" + data.backupDate + "</td>" +
+                        "<td>" + data.sourceDate+ "</td>" +
+                        "<td>" + data.readableSize+ "</td>" +
+                        "</tr>";
+
+
+                    $("#t_body").append(str);
+
+                };
+                    var pages=Math.ceil(res.total / 10);
+                var str=""
+                str += "<span>总共：" + pages+ "页</span> &nbsp;";
+                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
+                $("#pager").html(str);
+            }
+        });
+    }
+
+
+</script>

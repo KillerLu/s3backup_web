@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <head>
     <title>Backup Jobs</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,10 +8,11 @@
           integrity="sha384-oAOxQR6DkCoMliIh8yFnu25d7Eq/PHS21PClpwjOTeU2jRSq11vu66rf90/cZr47" crossorigin="anonymous">
     <!--    <link rel="stylesheet" type="text/css" href="/static/css/base.css"/>-->
     <link/>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="Stylesheetpure-min.css">
 </head>
 <body>
 <h3>任务详情</h3>
-前往第 <input id="page" name="page" type="text" value="1"/>页 <button type="button" name="search" onclick="search()">查询</button>
 <table class="pure-table" id="task_table">
     <thead>
     <tr>
@@ -19,7 +20,6 @@
         <th>bucket</th>
         <th>key</th>
         <th>备份结果</th>
-        <th>备份类型</th>
         <th>备份日期</th>
         <th>源文件上传日期</th>
         <th>文件大小</th>
@@ -34,69 +34,32 @@
 </html>
 <script src="jquery-3.4.1.js"></script>
 <script type="text/javascript">
-    $(function () {
-        var url = document.URL;
-        var urlA = url.split('?');
-        var taskId = urlA[1];
-        $.ajax({
-            type: "GET",
-            url: "./s3backup/backup/listRecordByTaskId?taskId="+taskId,
-            dataType: "json",
-            success: function (res) {
-                for (let data of res.data) {
-                    var backupResult;
-                    if (data.backupResult == 0) {
-                        backupResult = '进行中'
-                    }
-                    if (data.backupResult == 1) {
-                        backupResult = '备份成功'
-                    }
-                    if (data.backupResult == 2) {
-                        backupResult = '备份失败'
-                    }
-                    var backupType;
-                    if (data.backupType == 1) {
-                        backupType = '全文件备份(增量)'
-                    }
-                    if (data.backupType == 2) {
-                        backupType = '手动备份今天(增量)'
-                    }
-                    if (data.backupType == 3) {
-                        backupType = '定时备份昨天'
-                    }
-                    var str = "";
-                    str += "<tr>" +
-                        "<td>" + data.id + "</td>" +
-                        "<td>" + data.bucket + "</td>" +
-                        "<td>" + data.uniqueKey + "</td>" +
-                        "<td>" + backupResult + "</td>" +
-                        "<td>" + backupType + "</td>" +
-                        "<td>" + data.backupDate + "</td>" +
-                        "<td>" + data.sourceDate+ "</td>" +
-                        "<td>" + data.readableSize+ "</td>" +
-                        "</tr>";
 
-
-                    $("#t_body").append(str);
-
-                };
-                    var pages=Math.ceil(res.total / 10);
-                var str=""
-                str += "<span>总共：" + pages+ "页</span> &nbsp;";
-                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
-                $("#pager").html(str);
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            if (pair[0] == variable) {
+                return pair[1];
             }
-        });
+        }
+        return null;
+    }
+
+    $(function () {
+        var action = getQueryVariable('action')
+        var bucket = getQueryVariable('bucket')
+        var taskId = getQueryVariable('taskId')
+        search(action, bucket, taskId, 1);
     });
-    function search() {
-          //先清空
+
+    function search(action, bucket, taskId, currentPage) {
+        //先清空
         $("#t_body").html("");
-        var url = document.URL;
-        var urlA = url.split('?');
-        var taskId = urlA[1];
         $.ajax({
             type: "GET",
-            url: "./s3backup/backup/listRecordByTaskId?taskId="+taskId+"&page="+$("#page").val(),
+            url: "./s3backup/backup/listBackupDetail?action=" + action + "&taskId=" + taskId + "&bucket=" + bucket+"&page="+ currentPage,
             dataType: "json",
             success: function (res) {
                 for (let data of res.data) {
@@ -110,40 +73,52 @@
                     if (data.backupResult == 2) {
                         backupResult = '备份失败'
                     }
-                    var backupType;
-                    if (data.backupType == 1) {
-                        backupType = '全文件备份(增量)'
-                    }
-                    if (data.backupType == 2) {
-                        backupType = '手动备份今天(增量)'
-                    }
-                    if (data.backupType == 3) {
-                        backupType = '定时备份昨天'
-                    }
                     var str = "";
                     str += "<tr>" +
                         "<td>" + data.id + "</td>" +
                         "<td>" + data.bucket + "</td>" +
                         "<td>" + data.uniqueKey + "</td>" +
                         "<td>" + backupResult + "</td>" +
-                        "<td>" + backupType + "</td>" +
                         "<td>" + data.backupDate + "</td>" +
-                        "<td>" + data.sourceDate+ "</td>" +
-                        "<td>" + data.readableSize+ "</td>" +
+                        "<td>" + data.sourceDate + "</td>" +
+                        "<td>" + data.readableSize + "</td>" +
                         "</tr>";
-
 
                     $("#t_body").append(str);
 
-                };
-                    var pages=Math.ceil(res.total / 10);
-                var str=""
-                str += "<span>总共：" + pages+ "页</span> &nbsp;";
-                 str += "<span>当前第：" +  $("#page").val()+ "页</span> &nbsp;";
-                $("#pager").html(str);
+                }
+                ;
+                getPagination(res.total,action,bucket,taskId, currentPage)
+
             }
         });
     }
 
+    function getPagination(total,action,bucket,taskId, currentPage) {
+        var pages = Math.ceil(total / 10);
+        var str = ""
+        str += "<ul class='pageWrap'>"
+        for (i = 1; i < pages + 1; i++) {
+            var _class = 'pageWrapli '
+            if (i == currentPage) {
+                _class += 'active'
+            }
+            console.log(_class, 111)
+            str += "<li><span class='" + _class + "'>" + i + "</span></li>"
+        }
+        str += "</ul>"
+        // str += "<span>共：" + pages+ "页</span> &nbsp;";
+        // str += "<span>当前第：" +  currentPage + "页</span> &nbsp;";
+        $("#pager").html(str);
+        var list = document.getElementsByClassName("pageWrapli")
+        for (var i = 0; i < list.length; i++) {
+            var li = list[i];
+            li.onclick = (function (index) {
+                return function () {
+                    search(action,bucket,taskId, index + 1)
+                };
+            })(i);
+        }
+    }
 
 </script>

@@ -33,7 +33,6 @@
     <div class="tableTitle">
         <h3>备份任务</h3>
         <input name="ceph_name" type="text"  id="ceph_name" hidden="true"/>
-        <a class="button"  id="create_task">创建备份任务</a>
     </div>
     <table class="pure-table" id="task_table">
         <thead>
@@ -80,7 +79,6 @@
                     $("#ceph_tab").append(str);
                     i++;
                 };
-                document.getElementById("create_task").href="./create_task.html?backupCeph="+ceph_name;
                 if (i > 0) {
                     $("#ceph_name").val(ceph_name);
                     search(ceph_name,1);
@@ -126,8 +124,7 @@
                         taskStatus = '手动中断'
                     }
                     var str = "";
-                    var href="./task_detail.html?"+data.id;
-                    var fail="./fail.html?"+data.id;
+                    var href="./task_summary.html?"+data.id;
                     str += "<tr>" +
                         "<td>" + data.id + "</td>" +
                         "<td>" + taskStatus + "</td>" +
@@ -136,7 +133,7 @@
                         "<td>" + data.successCount + "</td>" +
                         "<td>" + data.failCount + "</td>" +
                         "<td>" + data.readableSize + "</td>" +
-                        "<td>" + '<a href=\"'+href+'\">查看</a>   '+ '<a href=\"'+fail+'\">查看失败</a>' + "</td>" +
+                        "<td>" + '<a href=\"'+href+'\">查看</a>   ' + "</td>" +
                         "</tr>";
 
 

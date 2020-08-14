@@ -93,7 +93,6 @@
 
     function clickTab(ceph_name,i,total) {
         $("#ceph_name").val(ceph_name);
-        document.getElementById("create_task").href="./create_task.html?backupCeph="+ceph_name;
         for (j = 0; j < total; j++) {
             document.getElementById("li_stage_"+j).className="li";
         }
